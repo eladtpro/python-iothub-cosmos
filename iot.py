@@ -1,18 +1,16 @@
 # Copyright (c) Microsoft. All rights reserved.
 # Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-import configparser
-import argparse
+from configparser import ConfigParser
 from types import SimpleNamespace
 from simulateddevice import run
-from hublistener import listen
-
-RUN = 'run'
-LISTEN = 'listen'
-
+from sys import argv
+from args import extract
+from constants import RUN, LISTEN
+from hublistener import listen, listenasync
 
 def bootstrap():
-    configuration = configparser.ConfigParser()
+    configuration = ConfigParser()
     configuration.read('.ini')
     config = SimpleNamespace(
         # iot
@@ -25,21 +23,17 @@ def bootstrap():
     return config
 
 
-def main(mode):
-	config = bootstrap()
+def main(options):
+    config = bootstrap()
 
-	if mode == RUN:
-		run(config)
-	elif mode == LISTEN:
-		listen(config)
+    if RUN == options.mode:
+        run(config)
+    elif LISTEN == options.mode:
+        if options.async == True:
+            listenasync(config)
+        else: 
+            listen(config)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--mode')
-    args = parser.parse_args()
-
-    if args.mode is not None and args.mode in (RUN, LISTEN):
-        main(args.mode)
-    else:
-        raise ValueError(
-            f'argument --mode can be set to `{RUN}` or `{LISTEN}` only')
+    options = extract(argv[1:])
+    main(options)

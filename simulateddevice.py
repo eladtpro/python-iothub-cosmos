@@ -25,13 +25,13 @@ def run(config):
 	try:
 		client = init(config)
 		print("IoT Hub device sending periodic messages, press Ctrl-C to exit")
-		count = 0
+		count = 1
 		while True:
 			# Build the message with simulated telemetry values.
 			temperature = 20.0 + (random.random() * 15)
 			humidity = 60 + (random.random() * 20)
 
-			message = Message(f'{{"temperature": {temperature},"humidity": {humidity}}}')
+			message = Message(f'{{"id":{count},"temperature": {temperature},"humidity": {humidity}}}')
 
 			# Add a custom application property to the message.
 			# An IoT hub can filter on these properties without access to the message body.
