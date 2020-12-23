@@ -12,12 +12,28 @@ from azure.eventhub import TransportType
 from azure.eventhub.aio import EventHubConsumerClient
 from azure.eventhub import EventHubConsumerClient
 
+client = None
+
+def init(config):
+    global client
+    if client is None:
+        print('EventHubConsumerClient not exist and will be set for the first time')
+        connectionstring = get_connection_string(config)
+        client = EventHubConsumerClient.from_connection_string(conn_str=connectionstring, consumer_group="$default",
+                                                            # transport_type=TransportType.AmqpOverWebsocket,  # uncomment it if you want to use web socket
+                                                            # http_proxy={  # uncomment if you want to use proxy
+                                                            #     'proxy_hostname': '127.0.0.1',  # proxy hostname.
+                                                            #     'proxy_port': 3128,  # proxy port.
+                                                            #     'username': '<proxy user name>',
+                                                            #     'password': '<proxy password>'
+                                                            # }
+                                                            )
+    return client
 
 # Define callbacks to process events
-
 def on_event_batch(partition_context, events):
     for event in events:
-        print(f"Received Event: partition-{partition_context.partition_id}. Telemetry-{event.body_as_str()}.")
+        print(f"Received [{partition_context.partition_id}] {event.body_as_str()}.")
         #print(f"Received event from partition: {partition_context.partition_id}. Telemetry received: {event.body_as_str()}.	Properties (set by device): {event.properties}.	System properties (set by IoT Hub): {event.system_properties}.\n")
     partition_context.update_checkpoint()
 
@@ -52,19 +68,10 @@ def get_connection_string(config):
 
 
 def listenasync(config):
-    connectionstring = get_connection_string(config)
-
-    loop = asyncio.get_event_loop()
-    client = EventHubConsumerClient.from_connection_string(conn_str=connectionstring, consumer_group="$default",
-                                                           # transport_type=TransportType.AmqpOverWebsocket,  # uncomment it if you want to use web socket
-                                                           # http_proxy={  # uncomment if you want to use proxy
-                                                           #     'proxy_hostname': '127.0.0.1',  # proxy hostname.
-                                                           #     'proxy_port': 3128,  # proxy port.
-                                                           #     'username': '<proxy user name>',
-                                                           #     'password': '<proxy password>'
-                                                           # }
-                                                           )
     try:
+        loop = asyncio.get_event_loop()
+        client = init(config)
+
         loop.run_until_complete(client.receive_batch(
             on_event_batch=on_event_batch_async, on_error=on_error_async))
     except KeyboardInterrupt:
@@ -75,18 +82,8 @@ def listenasync(config):
 
 
 def listen(config):
-    connectionstring = get_connection_string(config)
-
-    client = EventHubConsumerClient.from_connection_string(conn_str=connectionstring, consumer_group="$default",
-                                                           # transport_type=TransportType.AmqpOverWebsocket,  # uncomment it if you want to use web socket
-                                                           # http_proxy={  # uncomment if you want to use proxy
-                                                           #     'proxy_hostname': '127.0.0.1',  # proxy hostname.
-                                                           #     'proxy_port': 3128,  # proxy port.
-                                                           #     'username': '<proxy user name>',
-                                                           #     'password': '<proxy password>'
-                                                           # }
-                                                           )
     try:
+        client = init(config)
         with client:
             client.receive_batch(
                 on_event_batch=on_event_batch,

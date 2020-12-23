@@ -1,17 +1,16 @@
 #!/usr/bin/python
 
 from getopt import getopt, GetoptError
-from types import SimpleNamespace
 from sys import exit
-from constants import RUN, LISTEN, COMMAND_LINE
+from models.options import Options, RUN, LISTEN
+
+COMMAND_LINE = 'iot.py --mode<-m> run\\listen [--async<-a>] [--save<-s>]'
 
 def extract(argv):
-    options = SimpleNamespace(
-        mode='',
-        async=False)
+    options = Options()
 
     try:
-        opts, args = getopt(argv, 'ham:', ['help', 'async', 'mode='])
+        opts, args = getopt(argv, 'hasm:', ['help', 'async', 'save', 'mode='])
     except GetoptError:
         print(f'Command {argv} not found.')
         print(COMMAND_LINE)

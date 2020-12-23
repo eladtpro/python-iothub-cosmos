@@ -13,10 +13,10 @@ In this sample we will:
 
 $~$
 
-## Creating Azure artifacts
- using the Azure CLI
+### Creating Azure artifacts
+Using the Azure CLI
  
-### Create an Azure IoT Hub
+#### Create an Azure IoT Hub
 1. create a resource group:
 ```sh
 az group create --name {resource group name} --location westeurope
@@ -25,17 +25,17 @@ az group create --name {resource group name} --location westeurope
 ```sh
 az iot hub create --name {iot hub name} --resource-group {resource group name} --sku S1
 ```
-### Register a device
+#### Client Device Registration
 3. create the device identity:
 ```sh
-az iot hub device-identity create --hub-name {iot hub name} --device-id {chosen device name}
+az iot hub device-identity create --hub-name {iot hub name} --device-id {device identifier}
 ```
-4. get the device connection string for the device you registered:
+4. Get the IoT device connection string for the device you registered:
 ```sh
-az iot hub device-identity connection-string show --hub-name {iot hub name} --device-id {chosen device name} --output table
+az iot hub device-identity connection-string show --hub-name {iot hub name} --device-id {device identifier} --output table
 ```
 > Make a note of the device connection string, which looks like:
-> HostName={iot hub name}.azure-devices.net;DeviceId={chosen device name};SharedAccessKey={YourSharedAccessKey}
+> HostName={iot hub name}.azure-devices.net;DeviceId={device identifier};SharedAccessKey={YourSharedAccessKey}
 
 5. You also need the Event Hubs-compatible [endpoint], Event Hubs-compatible [path], and service [primary key] from your IoT hub
 ```sh
@@ -45,37 +45,41 @@ az iot hub policy show --name service --query primaryKey --hub-name {iot hub nam
 ```
 
 
-### Create Cosmos DB
+#### Create Cosmos DB account, database and container
 
-6. Create Cosmos DB client instance:
+6. Create Cosmos DB account:
 ```sh
-az cosmosdb create \
-    --name {cosmos db account name} \
-    --resource-group {resource group name} \
-    --default-consistency-level Session \
-    --locations regionName=westeurope failoverPriority=0 isZoneRedundant=False \
-    --locations regionName=easteurope failoverPriority=1 isZoneRedundant=False
+
+az cosmosdb create --name {cosmos db account name} --resource-group {resource group name} --subscription {subscription id}
 ```
 
 7. Create database:
->check deprecated:
->This command has been deprecated and will be removed in a future release. Use 'cosmosdb sql database, cosmosdb mongodb database, cosmosdb cassandra keyspace or cosmosdb gremlin database' instead.
 ```sh
-az cosmosdb gremlin database create --name {database name} --account-name {cosmos db account name} --resource-group {resource group name}
+az cosmosdb sql database create  --name {database name} --account-name {cosmos db account name} --resource-group {resource group name}
 ```
 
 
-8. Create containers:
+8. Create container:
+> Azure Cosmos DB is a schema-agnostic database that allows you to iterate on your application without having to deal with schema or index management. By default, Azure Cosmos DB automatically indexes every property for all items in your container without having to define any schema or configure secondary indexes. more info can be found [here](#external-links).
+
 ```sh
-az cosmosdb sql container create --resource-group {resource group name} --account {cosmos db account name} \ 
---database-name MyDatabase -n MyContainer --partition-key-path "/my/path" --idx @policy-file.json --ttl 1000 --throughput "700"
+az cosmosdb sql container create --name {container name} --database-name {database name} --account-name {cosmos db account name} --partition-key-path "/device/deviceid" --resource-group {resource group name}
+```
+
+9. Retrieve access key and connection string 
+>Get the values Respectively `Primary SQL Connection String` and `primaryMasterKey`
+
+
+```sh
+az cosmosdb keys list --name {cosmos db account name} --resource-group {resource group name} --type keys
+az cosmosdb keys list --name {cosmos db account name} --resource-group {resource group name} --type connection-strings --output table
 ```
 
 $~$
 
-## Local Environment
+### Local Environment
 
-### Prepring VSCode
+#### Preparing VSCode
 using ubuntu shell
 
 1. if not already exists - install pip (standard package manager for python):
@@ -92,10 +96,19 @@ pip3 install azure-iot-device
 ```sh
 pip3 install azure-eventhub
 ```
+4. install the azure cosmos db library:
+```sh
+pip3 install --upgrade azure-cosmos
+```
 
 
-### Python Configuration File (.ini)
-create [.ini] file with the kes extracted from the two last azure shell command - [connectionstring], [endpoint], [path], and [primary key]:
+
+
+
+#### Python Configuration File (.ini)
+Create [.ini] file with the keys extracted from both:
+- [Device Registration](#client-device-registration) section - `connectionstring`, `endpoint`, `path`, and `primary key`
+- [Create CosmosDb](#create-cosmos-db-account-database-and-container) section - `Primary SQL Connection String`, `primaryMasterKey`, `database name` and `container name`
 ```ini
 [default]
 port=80
@@ -104,12 +117,17 @@ connectionstring={connectionstring}
 endpoint={endpoint}
 path={path}
 primarykey={primary key}
-deviceid={chosen device name}
+deviceid={device identifier}
+[cosmosdb]
+endpoint={Primary SQL Connection String}
+primarykey={primaryMasterKey}
+database={database name}
+container={container name}
 ```
 
 $~$
 
-## Running the simulation
+### Running the simulation
 
 first - running client device simulation:
 ```python
@@ -126,22 +144,25 @@ python3 iot.py --mode listen
 
 $~$
 
-$~$
+### Further Readings
 
-
-
-### External Links
+#### External Links
 The solution based on external resources:
 
 * [Azure CLI: Create an IoT hub] - How to create an IoT hub using Azure CLI.
 * [Azure CLI: Create and manage Cosmos DB] - Common commands to automate management of your Azure Cosmos DB accounts
+* [Azure CLI: Create an Azure Cosmos Core (SQL) API account, database and container using Azure CLI]
+* [Azure: Indexing in Azure Cosmos DB - Overview] - 
+* [Azure: Understand data store models] - Selecting the right data store for your requirements is a key design decision
+* [Azure: Use the Azure Table API to store IoT data] - Moving your database from Azure Table Storage into Azure Cosmos DB with a low throughput could have considerable cost savings.
 * [Python: Send telemetry to IoT hub] - Send telemetry from a device to an IoT hub and read it with a back-end application (Python)
 * [Python: Cosmos DB read and write data] - Create and manage an Azure Cosmos DB SQL API account from the Azure portal, and from Visual Studio Code with a Python app.
 * [Windows Subsystem for Linux Installation Guide for Windows 10] - installing Windows Subsystem for Linux (WSL).
-* [configparser] - Handling Configuration Files in Python.
+* [Python: configparser] - Handling Configuration Files in Python.
+* [Python: TemplateEngine] - Python template engine.
 
 
-### Tools
+#### Tools
 
 Useful tooling
 
@@ -152,11 +173,11 @@ Useful tooling
 | *Visual Studio Code* | https://code.visualstudio.com/download |
 | *Windows Terminal* | https://docs.microsoft.com/en-us/windows/terminal/get-started |
 
-License
-----
+####License
 
 MIT
 
+----
 
 **Elad Tal (CE @ Microsoft)**
 
@@ -164,8 +185,15 @@ MIT
 
 
    [Azure CLI: Create an IoT hub]: <https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-create-using-cli>
-   [Azure CLI: Create and manage Cosmos DB]: <https://docs.microsoft.com/en-us/azure/cosmos-db/manage-with-cli>
-   [Python: Send telemetry to IoT hub]: <https://docs.microsoft.com/en-us/azure/iot-hub/quickstart-send-telemetry-python>
+   [Azure CLI: Create and manage Cosmos DB]:<https://docs.microsoft.com/en-us/azure/cosmos-db/manage-with-cli>
+   [Azure CLI: Create an Azure Cosmos Core (SQL) API account, database and container using Azure CLI]: <https://docs.microsoft.com/en-us/azure/cosmos-db/scripts/cli/sql/create>
+   [Azure: Understand data store models]:<https://docs.microsoft.com/en-us/azure/architecture/guide/technology-choices/data-store-overview>
+   [Azure: Indexing in Azure Cosmos DB - Overview]:<https://docs.microsoft.com/en-us/azure/cosmos-db/index-overview>
+   [Azure: Use the Azure Table API to store IoT data]: <https://docs.microsoft.com/en-us/learn/modules/choose-api-for-cosmos-db/8-use-the-azure-table-api-to-store-iot-data>
+   [Python: Send telemetry to IoT hub]:<https://docs.microsoft.com/en-us/azure/iot-hub/quickstart-send-telemetry-python>
    [Python: Cosmos DB read and write data]:<https://docs.microsoft.com/en-us/azure/cosmos-db/create-sql-api-python>
    [Windows Subsystem for Linux Installation Guide for Windows 10]:<https://docs.microsoft.com/en-us/windows/wsl/install-win10>
-   [configparser]: <https://docs.python.org/3/library/configparser.html>
+   [Python: configparser]: <https://docs.python.org/3/library/configparser.html>
+   [Python: TemplateEngine]: <https://github.com/vrash/PythonTemplateEngine>
+
+
