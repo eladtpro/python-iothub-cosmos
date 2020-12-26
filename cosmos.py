@@ -30,11 +30,10 @@ def save(container, telemetry):
 
 def read(config, printItems=False):
     container = init(config)
-    query = f"SELECT * FROM c WHERE c.deviceid IN ({config.iot.deviceid})"
-    telemetries = list(container.query_items(query=query, enable_cross_partition_query=False))
+    query = f"SELECT * FROM c WHERE c.device.deviceid IN ('{config.iot.deviceid}')"
+    telemetries = list(container.query_items(query=query, enable_cross_partition_query=True))
     request_charge = container.client_connection.last_response_headers['x-ms-request-charge']
-    print('Query returned {0} telemetries. Operation consumed {1} request units'.format(
-        len(telemetries), request_charge))
+    print('Query returned {0} telemetries. Operation consumed {1} request units'.format(len(telemetries), request_charge))
     #items_response = container.read_items(partition_key=deviceid)
     for telemetry in telemetries:
-        print(f"Telemetry for {telemetry['deviceid']} = {telemetry['timestamp']}")
+        print(f"Telemetry for {telemetry['device']['deviceid']} = {telemetry['data']['timestamp']}")
