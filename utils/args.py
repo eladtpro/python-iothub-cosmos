@@ -2,9 +2,10 @@
 
 from getopt import getopt, GetoptError
 from sys import exit
-from models.options import Options, RUN, LISTEN
+from models.options import Options, Mode, RUN, LISTEN, READ
 
-COMMAND_LINE = 'iot.py --mode<-m> run\\listen [--async<-a>] [--save<-s>]'
+COMMAND_LINE = 'iot.py --mode<-m> run\\listen [--async<-a>] [--save<-s>] [--read<-r>]'
+
 
 def extract(argv):
     options = Options()
@@ -21,14 +22,21 @@ def extract(argv):
             exit()
         elif opt in ("-m", "--mode"):
             mode = arg.replace('=', '')
-            if mode not in (RUN, LISTEN):
+            if mode not in (RUN, LISTEN, READ):
                 print(f'Missing or invalid required argument mode. {args}')
                 print(COMMAND_LINE)
                 exit(1)
-            else:
-                options.mode=mode
+            elif RUN == mode:
+                options.mode = Mode.RUN 
+            elif LISTEN == mode:
+                options.mode = Mode.LISTEN
+            elif READ == mode:
+                options.mode = Mode.READ
+
         elif opt in ("-a", "--async"):
             options.async = True
+        elif opt in ("-s", "--save"):
+            options.save = True
 
     print(f'options: [{options}]')
     return options

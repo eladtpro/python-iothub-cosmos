@@ -11,8 +11,11 @@ import asyncio
 from azure.eventhub import TransportType
 from azure.eventhub.aio import EventHubConsumerClient
 from azure.eventhub import EventHubConsumerClient
+from cosmos import save, init as cosmos_init
+
 
 client = None
+container = None
 
 def init(config):
     global client
@@ -33,7 +36,12 @@ def init(config):
 # Define callbacks to process events
 def on_event_batch(partition_context, events):
     for event in events:
-        print(f"Received [{partition_context.partition_id}] {event.body_as_str()}.")
+        global container
+        print(f"Received [Partition:{partition_context.partition_id}] {event.body_as_str()}.")
+        if container is not None:
+            save(container, event.body_as_str())
+    #save(Configuration, telemetry)
+
         #print(f"Received event from partition: {partition_context.partition_id}. Telemetry received: {event.body_as_str()}.	Properties (set by device): {event.properties}.	System properties (set by IoT Hub): {event.system_properties}.\n")
     partition_context.update_checkpoint()
 
@@ -48,7 +56,8 @@ def on_error(partition_context, error):
 
 async def on_event_batch_async(partition_context, events):
     for event in events:
-        print(f"Received Event: partition-{partition_context.partition_id}. Telemetry-{event.body_as_str()}.")
+        print(f"Received event from partition: {partition_context.partition_id}. Telemetry received: {event.body_as_str()}.	Properties (set by device): {event.properties}.	System properties (set by IoT Hub): {event.system_properties}.\n")
+        #print(f"Received Event: partition-{partition_context.partition_id}. Telemetry-{event.body_as_str()}.")
         #print(f"Received event from partition: {partition_context.partition_id}. Telemetry received: {event.body_as_str()}.	Properties (set by device): {event.properties}.	System properties (set by IoT Hub): {event.system_properties}.\n")
     await partition_context.update_checkpoint()
 
@@ -64,30 +73,30 @@ async def on_error_async(partition_context, error):
 
 
 def get_connection_string(config):
-    return f'Endpoint={config.endpoint}/;SharedAccessKeyName=service;SharedAccessKey={config.primarykey};EntityPath={config.path}'
+    return f'Endpoint={config.iot.endpoint}/;SharedAccessKeyName=service;SharedAccessKey={config.iot.primarykey};EntityPath={config.iot.path}'
 
 
-def listenasync(config):
+def listen(config, options):
+    loop = None
     try:
-        loop = asyncio.get_event_loop()
-        client = init(config)
+        global container
+        if(True == options.save):
+            container = cosmos_init(config)
 
-        loop.run_until_complete(client.receive_batch(
-            on_event_batch=on_event_batch_async, on_error=on_error_async))
+        if True == options.async:
+            loop = asyncio.get_event_loop()
+            client = init(config)
+
+            loop.run_until_complete(client.receive_batch(
+                on_event_batch=on_event_batch_async, on_error=on_error_async))
+        else:
+            client = init(config)
+            print("Listening...")
+            with client:
+                client.receive_batch(on_event_batch=on_event_batch, on_error=on_error)
     except KeyboardInterrupt:
-        print("Receiving has stopped.")
+        print("Receiving has stopped by user.")
     finally:
-        loop.run_until_complete(client.close())
-        loop.stop()
-
-
-def listen(config):
-    try:
-        client = init(config)
-        with client:
-            client.receive_batch(
-                on_event_batch=on_event_batch,
-                on_error=on_error
-            )
-    except KeyboardInterrupt:
-        print("Receiving has stopped.")
+        if loop is not None:
+            loop.run_until_complete(client.close())
+            loop.stop()

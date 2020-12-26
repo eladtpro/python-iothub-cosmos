@@ -1,6 +1,7 @@
 from string import Template
 
 template = Template('''{
+    "id": "$timestamp",
     "device": {
         "deviceid": "$deviceid"
     },

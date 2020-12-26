@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "name": "Python: Module",
+            "type": "python",
+            "request": "launch",
+            //"program": "${file}",
+            "module": "iot",
+            //"args": ["--mode", "listen", "--save"]
+            "args": ["--mode", "read"]
+
+        }
+    ]
+}

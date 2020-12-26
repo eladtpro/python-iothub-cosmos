@@ -1,23 +1,23 @@
 # Copyright (c) Microsoft. All rights reserved.
 # Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-from simulateddevice import run
 from sys import argv
 from utils.args import extract
-from models.options import RUN, LISTEN
-from hublistener import listen, listenasync
+from simulateddevice import run
+from hublistener import listen
 from models.configuration import Configuration
+from models.options import Mode
+from cosmos import read
 
 def main(options):
     config = Configuration()
 
-    if RUN == options.mode:
+    if Mode.RUN == options.mode:
         run(config)
-    elif LISTEN == options.mode:
-        if options.async == True:
-            listenasync(config)
-        else: 
-            listen(config)
+    elif Mode.LISTEN == options.mode:
+        listen(config, options)
+    elif Mode.READ == options.mode:
+        read(config)
 
 if __name__ == '__main__':
     options = extract(argv[1:])
