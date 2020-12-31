@@ -11,7 +11,7 @@ In this sample we will:
   - Build Python sample code that will create random events and send then to the IoT hub as client device.
   - Build another python module that will read the events from the hub and store them in Cosmos DB.
 
-$~$
+
 
 ### Creating Azure artifacts
 Using the Azure CLI
@@ -75,7 +75,7 @@ az cosmosdb keys list --name {cosmos db account name} --resource-group {resource
 az cosmosdb keys list --name {cosmos db account name} --resource-group {resource group name} --type connection-strings --output table
 ```
 
-$~$
+
 
 ### Local Environment
 
@@ -122,7 +122,7 @@ database={database name}
 container={container name}
 ```
 
-$~$
+
 
 ### Running the simulation
 
@@ -149,7 +149,7 @@ python3 iot.py --mode clear
 [![N|Running Sample](https://github.com/eladtpro/python-iothub-cosmos/blob/main/.readme/running-sample.jpg?raw=true)](https://github.com/eladtpro/python-iothub-cosmos)
 
 
-$~$
+
 
 ### Clean up resources
 
@@ -164,7 +164,7 @@ Remove-AzResourceGroup -Name {resource group name}
 
 ***
 
-$~$
+
 
 ### Further Readings
 
