@@ -102,9 +102,6 @@ pip3 install --upgrade azure-cosmos
 ```
 
 
-
-
-
 #### Python Configuration File (.ini)
 Create [.ini] file with the keys extracted from both:
 - [Device Registration](#client-device-registration) section - `connectionstring`, `endpoint`, `path`, and `primary key`
@@ -149,6 +146,9 @@ clear cosmosdb telemetries (all saved items):
 python3 iot.py --mode clear
 ```
 
+[![N|Running Sample](https://github.com/eladtpro/python-iothub-cosmos/blob/main/.readme/running-sample.jpg?raw=true)](https://github.com/eladtpro/python-iothub-cosmos)
+
+
 $~$
 
 ### Clean up resources
@@ -160,7 +160,6 @@ The following PowerShell script deletes a resource group:
 ```sh
 Remove-AzResourceGroup -Name {resource group name}
 ```
-
 
 
 ***
