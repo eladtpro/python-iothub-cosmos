@@ -7,7 +7,7 @@
             //"program": "${file}",
             "module": "iot",
             //"args": ["--mode", "listen", "--save"]
-            "args": ["--mode", "read"]
+            "args": ["--mode", "listen", "--save"]
 
         }
     ]

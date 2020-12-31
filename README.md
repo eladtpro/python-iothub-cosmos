@@ -134,11 +134,34 @@ first - running client device simulation:
 python3 iot.py --mode run
 ```
 
-
-next (while the client is running) and sending *simulated telemetry* - initiate the IoT hub consumer part:
+next (while the client is running) and sending *simulated telemetry* - initiate the IoT hub consumer part, use the *--save* flag for saving items into Cosmos DB:
 ```python
-python3 iot.py --mode listen
+python3 iot.py --mode listen [--save]
 ```
+
+read cosmosdb item (all saved items):
+```python
+python3 iot.py --mode read [--print]
+```
+
+clear cosmosdb telemetries (all saved items):
+```python
+python3 iot.py --mode clear
+```
+
+$~$
+
+### Clean up resources
+
+Using the Azure CLI
+
+The following PowerShell script deletes a resource group:
+
+```sh
+Remove-AzResourceGroup -Name {resource group name}
+```
+
+
 
 ***
 

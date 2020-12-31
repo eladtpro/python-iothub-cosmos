@@ -7,8 +7,7 @@
 from azure.iot.device import IoTHubDeviceClient, Message
 import random
 import time
-from utils.template import format
-from models.telemetry import Telemetry
+from models.telemetry import Telemetry, format, flatten
 from utils.error import printError
 
 DELAY_SECONDS = 2
@@ -31,12 +30,12 @@ def run(config):
     try:
         client = init(config)
         print("IoT Hub device sending periodic messages, press Ctrl-C to exit")
-        count = 1
+        batchid = 1
         while True:
             # Build the message with simulated telemetry values.
             temperature = 20.0 + (random.random() * 15)
             humidity = 60 + (random.random() * 20)
-            data = Telemetry(config, temperature, humidity)
+            data = Telemetry(config, batchid, temperature, humidity)
             msg = format(data)
             message = Message(msg)
             # Add a custom application property to the message.
@@ -45,10 +44,11 @@ def run(config):
                 message.custom_properties["temperatureAlert"] = "true"
             else:
                 message.custom_properties["temperatureAlert"] = "false"
-            count += 1
+            batchid += 1
             # Send the message.
             client.send_message(message)
-            print(f'{count}. {message}')
+            #flat = flatten(message)
+            print(f'Run: {message}')
             time.sleep(DELAY_SECONDS)
     except KeyboardInterrupt:
         print("Disconnected.")

@@ -7,7 +7,7 @@ from simulateddevice import run
 from hublistener import listen
 from models.configuration import Configuration
 from models.options import Mode
-from cosmos import read
+from cosmos import read, clear
 
 def main(options):
     config = Configuration()
@@ -17,7 +17,9 @@ def main(options):
     elif Mode.LISTEN == options.mode:
         listen(config, options)
     elif Mode.READ == options.mode:
-        read(config)
+        read(config, options.print)
+    elif Mode.CLEAR == options.mode:
+        clear(config)
 
 if __name__ == '__main__':
     options = extract(argv[1:])
