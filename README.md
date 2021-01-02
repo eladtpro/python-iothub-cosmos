@@ -197,7 +197,7 @@ Useful tooling
 | *Visual Studio Code* | https://code.visualstudio.com/download |
 | *Windows Terminal* | https://docs.microsoft.com/en-us/windows/terminal/get-started |
 
-####License
+#### License
 
 MIT
 
