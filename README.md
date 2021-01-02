@@ -120,6 +120,8 @@ endpoint={Primary SQL Connection String}
 primarykey={primaryMasterKey}
 database={database name}
 container={container name}
+path=/device/deviceid
+throughput=400
 ```
 
 
@@ -158,7 +160,7 @@ Using the Azure CLI
 The following PowerShell script deletes a resource group:
 
 ```sh
-Remove-AzResourceGroup -Name {resource group name}
+az group delete --name {resource group name}
 ```
 
 
